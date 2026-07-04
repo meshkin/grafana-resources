@@ -174,6 +174,6 @@ This step is optional but highly recommended for production environments.
 
 #### Example Log
 ```Json
-{"time_local":"15/Jun/2026:12:11:18.838","request_id":"8d0ef2d5-7e3b-49ac-8eb2-4e4312f0ab04","remote_addr":"172.19.0.3","remote_port":44278,"frontend_name":"eways","backend_name":"testinventory_https_servers","server_name":"node3","status":200,"bytes_sent":163,"bytes_received":152,"request_method":"GET","request_uri":"/","http_version":"HTTP/2.0","host":"testinventory.example.com","referer":"-","user_agent":"Zabbix","x_forwarded_for":"-","x-real-ip":"-","duration_total_ms":11,"duration_wait_ms":7,"duration_response_ms":4,"termination_state":"--","actconn":5,"feconn":4,"beconn":0,"srvconn":0,"retries":0}
+{"time_local":"15/Jun/2026:12:11:18.838","request_id":"8d0ef2d5-7e3b-49ac-8eb2-4e4312f0ab04","remote_addr":"172.19.0.3","remote_port":44278,"frontend_name":"main","backend_name":"testinventory_https_servers","server_name":"node3","status":200,"bytes_sent":163,"bytes_received":152,"request_method":"GET","request_uri":"/","http_version":"HTTP/2.0","host":"testinventory.example.com","referer":"-","user_agent":"Zabbix","x_forwarded_for":"-","x-real-ip":"-","duration_total_ms":11,"duration_wait_ms":7,"duration_response_ms":4,"termination_state":"--","actconn":5,"feconn":4,"beconn":0,"srvconn":0,"retries":0}
 ```
 
