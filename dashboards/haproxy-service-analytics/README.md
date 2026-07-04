@@ -1,4 +1,4 @@
-# HAProxy Service Analytics (Loki Logs)
+# [HAProxy Service Analytics (Loki Logs)](https://grafana.com/grafana/dashboards/25515-haproxy-service-analytics-loki-logs/)
 
 A comprehensive Grafana dashboard for analyzing HAProxy access logs stored in Loki.
 
