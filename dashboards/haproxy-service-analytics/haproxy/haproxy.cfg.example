@@ -1,0 +1,66 @@
+global
+    log /dev/log    local0
+    log /dev/log    local1 notice
+    chroot /var/lib/haproxy
+    stats socket /run/haproxy/admin.sock mode 660 level admin expose-fd listeners
+    stats timeout 30s
+    user haproxy
+    group haproxy
+    daemon
+
+    ca-base /etc/ssl/certs
+    crt-base /etc/ssl/private
+
+    ssl-default-bind-ciphers ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:DHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384
+    ssl-default-bind-ciphersuites TLS_AES_128_GCM_SHA256:TLS_AES_256_GCM_SHA384:TLS_CHACHA20_POLY1305_SHA256
+    ssl-default-bind-options ssl-min-ver TLSv1.2 no-tls-tickets
+
+defaults
+    log     global
+    mode    http
+    option  httplog
+    option  dontlognull
+    option  http-use-htx
+ 	option forwardfor
+    timeout connect 5000
+    timeout client  180000
+    timeout server  180000
+	timeout http-request 180000
+    errorfile 400 /etc/haproxy/errors/400.http
+    errorfile 403 /etc/haproxy/errors/403.http
+    errorfile 408 /etc/haproxy/errors/408.http
+    errorfile 500 /etc/haproxy/errors/500.http
+    errorfile 502 /etc/haproxy/errors/502.http
+    errorfile 503 /etc/haproxy/errors/503.http
+    errorfile 504 /etc/haproxy/errors/504.http
+
+frontend prometheus
+    bind *:8405
+    mode http
+    http-request use-service prometheus-exporter if { path /metrics }
+    no log
+
+frontend main
+    mode http
+    bind :80
+    bind :443 ssl crt /etc/ssl/private/wildcard.pem alpn h2,http/1.1
+
+    acl bot_acl hdr(host) -i bot.example.com
+    use_backend bot_servers if bot_acl
+
+    http-request capture req.hdr(Host) len 64             # hdr(0)
+    http-request capture req.hdr(Referer) len 128         # hdr(1)
+    http-request capture req.hdr(User-Agent) len 128      # hdr(2)
+    http-request capture req.hdr(X-Forwarded-For) len 64  # hdr(3)
+    http-request capture req.hdr(X-Real-IP) len 64        # hdr(4)
+    unique-id-format %[uuid()]
+    unique-id-header X-Unique-ID
+    http-request set-header X-Forwarded-For %[src]
+    log-format '{"time_local":"%t","request_id":"%ID","remote_addr":"%ci","remote_port":%cp,"frontend_name":"%f","backend_name":"%b","server_name":"%s","status":%ST,"bytes_sent":%B,"bytes_received":%U,"request_method":"%HM","request_uri":"%[capture.req.uri,json(utf8s)]","http_version":"%HV","host":"%[capture.req.hdr(0),json(utf8s)]","referer":"%[capture.req.hdr(1),json(utf8s)]","user_agent":"%[capture.req.hdr(2),json(utf8s)]","x_forwarded_for":"%[capture.req.hdr(3),json(utf8s)]","x-real-ip":"%[capture.req.hdr(4),json(utf8s)]","duration_total_ms":%Ta,"duration_wait_ms":%Tc,"duration_response_ms":%Tr,"termination_state":"%ts","actconn":%ac,"feconn":%fc,"beconn":%bc,"srvconn":%sc,"retries":%rc}'
+
+backend bot_servers
+    balance roundrobin
+    server node1 192.168.1.2:4170 alpn h2,http/1.1 check maxconn 50
+    server node2 192.168.1.3:4170 alpn h2,http/1.1 check maxconn 50
+    server node3 192.168.1.4:4170 alpn h2,http/1.1 check maxconn 50
+    
